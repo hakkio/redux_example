@@ -187,48 +187,48 @@ const Footer = ({ currentFilter, onFilterClick }) => (
 );
 
 /*
-This is the main "app" and is a container component
+This is the main "app" and is a container component.
+
+This doesn't have to be a class component, so conver to functional component.
+Try to do this whenever possible!
+Therefore, move props into the arrow function.
+Remove render().
+Remove the variable that sets getVisibleTodos() and move that into the <Footer>
+component itself. Then we can remove the return() as well
 */
-class TodoApp extends React.Component {
-  render() {
-    const { todos, visibilityFilter } = this.props;
-    const visibleTodos = getVisibleTodos(todos, visibilityFilter);
+const TodoApp = ({ todos, visibilityFilter }) => (
+  <div>
+    <AddTodo
+      onAddClick={value => {
+        store.dispatch({
+          type: "ADD_TODO",
+          text: value,
+          id: nextToDo++
+        });
+      }}
+    />
 
-    return (
-      <div>
-        <AddTodo
-          onAddClick={value => {
-            store.dispatch({
-              type: "ADD_TODO",
-              text: value,
-              id: nextToDo++
-            });
-          }}
-        />
+    <TodoList
+      todos={getVisibleTodos(todos, visibilityFilter)}
+      onTodoClick={id => {
+        store.dispatch({
+          type: "TOGGLE_TODO",
+          id // this equals `id: id`
+        });
+      }}
+    />
 
-        <TodoList
-          todos={visibleTodos}
-          onTodoClick={id => {
-            store.dispatch({
-              type: "TOGGLE_TODO",
-              id // this equals `id: id`
-            });
-          }}
-        />
-
-        <Footer
-          currentFilter={visibilityFilter}
-          onFilterClick={filter => {
-            store.dispatch({
-              type: "SET_VISIBILITY_FILTER",
-              filter: filter
-            });
-          }}
-        />
-      </div>
-    );
-  }
-}
+    <Footer
+      currentFilter={visibilityFilter}
+      onFilterClick={filter => {
+        store.dispatch({
+          type: "SET_VISIBILITY_FILTER",
+          filter: filter
+        });
+      }}
+    />
+  </div>
+);
 
 /* MAIN APP AND STORE */
 
