@@ -114,7 +114,7 @@ const TodoList = ({ todos, onTodoClick }) => (
 
 /* Create another functional component AddTodo 
 This one is also a presentational component */
-const AddTodo = ({ onAddClick }) => {
+const AddTodo = () => {
   let input;
   return (
     <div>
@@ -125,7 +125,11 @@ const AddTodo = ({ onAddClick }) => {
       />
       <button
         onClick={e => {
-          onAddClick(input.value);
+          store.dispatch({
+            type: "ADD_TODO",
+            text: input.value,
+            id: nextToDo++
+          });
           input.value = "";
         }}
       >
@@ -246,19 +250,13 @@ Try to do this whenever possible!
 Therefore, move props into the arrow function.
 Remove render().
 Remove the variable that sets getVisibleTodos() and move that into the <Footer>
-component itself. Then we can remove the return() as well
+component itself. Then we can remove the return() as well.
+
+As part of this last one, remove all props because none of the components need it
 */
-const TodoApp = ({ todos, visibilityFilter }) => (
+const TodoApp = () => (
   <div>
-    <AddTodo
-      onAddClick={value => {
-        store.dispatch({
-          type: "ADD_TODO",
-          text: value,
-          id: nextToDo++
-        });
-      }}
-    />
+    <AddTodo />
 
     <VisibleTodoList />
 
