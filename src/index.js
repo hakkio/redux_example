@@ -99,6 +99,24 @@ const Todo = ({ onClick, completed, text }) => (
   </li>
 );
 
+const TodoList = ({ todos }) => (
+  <ul>
+    {todos.map(t => (
+      <Todo
+        key={todo.id}
+        text={t.text}
+        completed={t.completed}
+        onClick={e => {
+          store.dispatch({
+            type: "TOGGLE_TODO",
+            id: t.id
+          });
+        }}
+      />
+    ))}
+  </ul>
+);
+
 class TodoApp extends React.Component {
   render() {
     const { todos, visibilityFilter } = this.props;
@@ -123,20 +141,7 @@ class TodoApp extends React.Component {
         >
           Add Todo
         </button>
-        <ul>
-          {visibleTodos.map(t => (
-            <Todo
-              text={t.text}
-              completed={t.completed}
-              onClick={e => {
-                store.dispatch({
-                  type: "TOGGLE_TODO",
-                  id: t.id
-                });
-              }}
-            />
-          ))}
-        </ul>
+        <TodoList todos={visibleTodos} />
         <FilterLink filter="SHOW_ALL" currentFilter={visibilityFilter}>
           ALL
         </FilterLink>
