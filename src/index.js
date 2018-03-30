@@ -135,10 +135,50 @@ const AddTodo = ({ onAddClick }) => {
   );
 };
 
+const FilterLink = ({ filter, currentFilter, children }) => {
+  if (filter === currentFilter) {
+    return <span>{children}</span>;
+  }
+  return (
+    <a
+      href="#"
+      onClick={e => {
+        store.dispatch({
+          type: "SET_VISIBILITY_FILTER",
+          filter: filter
+        });
+      }}
+    >
+      {children}
+    </a>
+  );
+};
+
+const Footer = ({ currentFilter }) => (
+  <p>
+    Show:
+    <FilterLink filter="SHOW_ALL" currentFilter={currentFilter}>
+      ALL
+    </FilterLink>
+    {", "}
+    <FilterLink filter="SHOW_ACTIVE" currentFilter={currentFilter}>
+      ACTIVE
+    </FilterLink>
+    {", "}
+    <FilterLink filter="SHOW_COMPLETED" currentFilter={currentFilter}>
+      COMPLETED
+    </FilterLink>
+  </p>
+);
+
+/*
+This is the main "app" and is a container component
+*/
 class TodoApp extends React.Component {
   render() {
     const { todos, visibilityFilter } = this.props;
     const visibleTodos = getVisibleTodos(todos, visibilityFilter);
+
     return (
       <div>
         <AddTodo
@@ -160,40 +200,12 @@ class TodoApp extends React.Component {
             });
           }}
         />
-        <FilterLink filter="SHOW_ALL" currentFilter={visibilityFilter}>
-          ALL
-        </FilterLink>
-        <br />
-        <FilterLink filter="SHOW_ACTIVE" currentFilter={visibilityFilter}>
-          ACTIVE
-        </FilterLink>
-        <br />
-        <FilterLink filter="SHOW_COMPLETED" currentFilter={visibilityFilter}>
-          COMPLETED
-        </FilterLink>
+
+        <Footer currentFilter={visibilityFilter} />
       </div>
     );
   }
 }
-
-const FilterLink = ({ filter, currentFilter, children }) => {
-  if (filter === currentFilter) {
-    return <span>{children}</span>;
-  }
-  return (
-    <a
-      href="#"
-      onClick={e => {
-        store.dispatch({
-          type: "SET_VISIBILITY_FILTER",
-          filter: filter
-        });
-      }}
-    >
-      {children}
-    </a>
-  );
-};
 
 /* MAIN APP AND STORE */
 
