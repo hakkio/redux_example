@@ -9,3 +9,5 @@ https://egghead.io/lessons/react-redux-extracting-presentational-components-todo
 Extracting components!
 
 If they are separate, they can be used, tested separately!
+
+Lesson 22: Extracting Container components
