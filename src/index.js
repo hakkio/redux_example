@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import PropTypes from 'prop-types';
 import ReactDOM from "react-dom";
 import { createStore, combineReducers } from "redux";
 
@@ -110,7 +111,7 @@ const TodoList = ({ todos, onTodoClick }) => (
 
 /* Create another functional component AddTodo 
 This one is also a presentational component */
-const AddTodo = ({ store }) => {
+const AddTodo = (props, { store }) => {
   let input;
   return (
     <div>
@@ -134,6 +135,10 @@ const AddTodo = ({ store }) => {
     </div>
   );
 };
+AddTodo.contextTypes = {
+  store: PropTypes.object
+};
+
 const Link = ({ active, children, onClick }) => {
   if (active) {
     return <span>{children}</span>;
@@ -162,8 +167,8 @@ the link, has a "active" (or not) varible, and an onClick handler.
 */
 class FilterLink extends React.Component {
   componentDidMount() {
-    const { store } = this.props;
-    this.unsubscribe = this.props.store.subscribe(() => this.forceUpdate());
+    const { store } = this.context;
+    this.unsubscribe = store.subscribe(() => this.forceUpdate());
   }
 
   componentWillUnmount() {
@@ -172,7 +177,7 @@ class FilterLink extends React.Component {
 
   render() {
     const props = this.props;
-    const { store } = this.props;
+    const { store } = this.context;
     const state = store.getState();
 
     if (state.visibilityFilter === this.props.filter) {
@@ -192,20 +197,29 @@ class FilterLink extends React.Component {
     );
   }
 }
+FilterLink.contextTypes = {
+  store: PropTypes.object
+};
 
 /* 
 To convert the footer to a presentation component, we need ot make sure
 it doesn't have any actions or behaviors.
 FilterLink does have an onClick! So need to extract that
 */
-const Footer = ({store}) => (
+const Footer = () => (
   <p>
     Show:
-    <FilterLink store={store} filter="SHOW_ALL">ALL</FilterLink>
+    <FilterLink filter="SHOW_ALL">
+      ALL
+    </FilterLink>
     {", "}
-    <FilterLink store={store} filter="SHOW_ACTIVE">ACTIVE</FilterLink>
+    <FilterLink filter="SHOW_ACTIVE">
+      ACTIVE
+    </FilterLink>
     {", "}
-    <FilterLink store={store} filter="SHOW_COMPLETED">COMPLETED</FilterLink>
+    <FilterLink filter="SHOW_COMPLETED">
+      COMPLETED
+    </FilterLink>
   </p>
 );
 
@@ -216,7 +230,7 @@ the data and behavior that it needs!
 */
 class VisibleTodoList extends React.Component {
   componentDidMount() {
-    const { store } = this.props;
+    const { store } = this.context;
     this.unsubscribe = store.subscribe(() => this.forceUpdate());
   }
 
@@ -226,7 +240,7 @@ class VisibleTodoList extends React.Component {
 
   render() {
     const props = this.props;
-    const { store } = this.props;
+    const { store } = this.context;
     const state = store.getState();
     return (
       <TodoList
@@ -241,6 +255,9 @@ class VisibleTodoList extends React.Component {
     );
   }
 }
+VisibleTodoList.contextTypes = {
+  store: PropTypes.object
+};
 
 /*
 This is the main "app" and is a container component.
@@ -256,14 +273,37 @@ As part of this last one, remove all props because none of the components need i
 
 Next, we want the store to be consistent, so pass it in as a prop from ReactDOM
 */
-const TodoApp = ({ store }) => (
+const TodoApp = () => (
   <div>
-    <AddTodo store={store} />
-    <VisibleTodoList store={store} />
-    <Footer store={store} />
+    <AddTodo />
+    <VisibleTodoList />
+    <Footer />
   </div>
 );
 
+/* Use Context to pass down store IMPLICITLY */
+
+class Provider extends Component {
+  getChildContext() {
+    return {
+      store: this.props.store
+    };
+  }
+
+  render() {
+    return this.props.children;
+  }
+}
+
+Provider.childContextTypes = {
+  store: PropTypes.object
+};
+
 /* MAIN APP AND STORE */
 
-ReactDOM.render(<TodoApp store={createStore(todoApp)} />, document.getElementById("root"));
+ReactDOM.render(
+  <Provider store={createStore(todoApp)}>
+    <TodoApp />
+  </Provider>,
+  document.getElementById("root")
+);
