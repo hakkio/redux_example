@@ -105,16 +105,12 @@ const Todo = ({ onClick, completed, text }) => (
 Let's convert it to a Presentational component
 */
 const TodoList = ({ todos, onTodoClick }) => (
-  <ul>
-    {todos.map(todo => (
-      <Todo key={todo.id} {...todo} onClick={() => onTodoClick(todo.id)} />
-    ))}
-  </ul>
+  <ul>{todos.map(todo => <Todo key={todo.id} {...todo} onClick={() => onTodoClick(todo.id)} />)}</ul>
 );
 
 /* Create another functional component AddTodo 
 This one is also a presentational component */
-const AddTodo = () => {
+const AddTodo = ({ store }) => {
   let input;
   return (
     <div>
@@ -166,7 +162,8 @@ the link, has a "active" (or not) varible, and an onClick handler.
 */
 class FilterLink extends React.Component {
   componentDidMount() {
-    this.unsubscribe = store.subscribe(() => this.forceUpdate());
+    const { store } = this.props;
+    this.unsubscribe = this.props.store.subscribe(() => this.forceUpdate());
   }
 
   componentWillUnmount() {
@@ -175,6 +172,7 @@ class FilterLink extends React.Component {
 
   render() {
     const props = this.props;
+    const { store } = this.props;
     const state = store.getState();
 
     if (state.visibilityFilter === this.props.filter) {
@@ -200,14 +198,14 @@ To convert the footer to a presentation component, we need ot make sure
 it doesn't have any actions or behaviors.
 FilterLink does have an onClick! So need to extract that
 */
-const Footer = () => (
+const Footer = ({store}) => (
   <p>
     Show:
-    <FilterLink filter="SHOW_ALL">ALL</FilterLink>
+    <FilterLink store={store} filter="SHOW_ALL">ALL</FilterLink>
     {", "}
-    <FilterLink filter="SHOW_ACTIVE">ACTIVE</FilterLink>
+    <FilterLink store={store} filter="SHOW_ACTIVE">ACTIVE</FilterLink>
     {", "}
-    <FilterLink filter="SHOW_COMPLETED">COMPLETED</FilterLink>
+    <FilterLink store={store} filter="SHOW_COMPLETED">COMPLETED</FilterLink>
   </p>
 );
 
@@ -218,6 +216,7 @@ the data and behavior that it needs!
 */
 class VisibleTodoList extends React.Component {
   componentDidMount() {
+    const { store } = this.props;
     this.unsubscribe = store.subscribe(() => this.forceUpdate());
   }
 
@@ -227,6 +226,7 @@ class VisibleTodoList extends React.Component {
 
   render() {
     const props = this.props;
+    const { store } = this.props;
     const state = store.getState();
     return (
       <TodoList
@@ -252,20 +252,18 @@ Remove render().
 Remove the variable that sets getVisibleTodos() and move that into the <Footer>
 component itself. Then we can remove the return() as well.
 
-As part of this last one, remove all props because none of the components need it
+As part of this last one, remove all props because none of the components need it.
+
+Next, we want the store to be consistent, so pass it in as a prop from ReactDOM
 */
-const TodoApp = () => (
+const TodoApp = ({ store }) => (
   <div>
-    <AddTodo />
-
-    <VisibleTodoList />
-
-    <Footer />
+    <AddTodo store={store} />
+    <VisibleTodoList store={store} />
+    <Footer store={store} />
   </div>
 );
 
 /* MAIN APP AND STORE */
 
-const store = createStore(todoApp);
-
-ReactDOM.render(<TodoApp />, document.getElementById("root"));
+ReactDOM.render(<TodoApp store={createStore(todoApp)} />, document.getElementById("root"));
