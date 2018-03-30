@@ -80,21 +80,22 @@ const getVisibleTodos = (todos, filter) => {
   }
 };
 
-/* Extract Todo */
-const Todo = ({ todo }) => (
+/*
+Convert ToDo to a presentational component.
+
+ Presentational components -> Only concerned with how things look
+ or how they render. Should not specify behavior.
+ To do this, extract the "onClick up to the props!"
+ Also, instead of passing in an object, pass in only the values it needs.
+*/
+const Todo = ({ onClick, completed, text }) => (
   <li
-    key={todo.id}
-    onClick={e => {
-      store.dispatch({
-        type: "TOGGLE_TODO",
-        id: todo.id
-      });
-    }}
+    onClick={onClick}
     style={{
-      textDecoration: todo.completed ? "line-through" : "none"
+      textDecoration: completed ? "line-through" : "none"
     }}
   >
-    {todo.text}
+    {text}
   </li>
 );
 
@@ -122,7 +123,20 @@ class TodoApp extends React.Component {
         >
           Add Todo
         </button>
-        <ul>{visibleTodos.map(t => <Todo todo={t} />)}</ul>
+        <ul>
+          {visibleTodos.map(t => (
+            <Todo
+              text={t.text}
+              completed={t.completed}
+              onClick={e => {
+                store.dispatch({
+                  type: "TOGGLE_TODO",
+                  id: t.id
+                });
+              }}
+            />
+          ))}
+        </ul>
         <FilterLink filter="SHOW_ALL" currentFilter={visibilityFilter}>
           ALL
         </FilterLink>
