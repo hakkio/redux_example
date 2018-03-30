@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import { createStore, combineReducers } from "redux";
 
@@ -207,6 +207,37 @@ const Footer = () => (
   </p>
 );
 
+/* Create another Container component.
+The purpose of container components is to connect 
+presentational component to the redux store and specify
+the data and behavior that it needs!
+*/
+class VisibleTodoList extends React.Component {
+  componentDidMount() {
+    this.unsubscribe = store.subscribe(() => this.forceUpdate());
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
+  render() {
+    const props = this.props;
+    const state = store.getState();
+    return (
+      <TodoList
+        todos={getVisibleTodos(state.todos, state.visibilityFilter)}
+        onTodoClick={id => {
+          store.dispatch({
+            type: "TOGGLE_TODO",
+            id // this equals `id: id`
+          });
+        }}
+      />
+    );
+  }
+}
+
 /*
 This is the main "app" and is a container component.
 
@@ -229,15 +260,7 @@ const TodoApp = ({ todos, visibilityFilter }) => (
       }}
     />
 
-    <TodoList
-      todos={getVisibleTodos(todos, visibilityFilter)}
-      onTodoClick={id => {
-        store.dispatch({
-          type: "TOGGLE_TODO",
-          id // this equals `id: id`
-        });
-      }}
-    />
+    <VisibleTodoList />
 
     <Footer />
   </div>
