@@ -83,10 +83,10 @@ const getVisibleTodos = (todos, filter) => {
 /*
 Convert ToDo to a presentational component.
 
- Presentational components -> Only concerned with how things look
- or how they render. Should not specify behavior.
- To do this, extract the "onClick up to the props!"
- Also, instead of passing in an object, pass in only the values it needs.
+Presentational components -> Only concerned with how things look
+or how they render. Should not specify behavior.
+To do this, extract the "onClick up to the props!"
+Also, instead of passing in an object, pass in only the values it needs.
 */
 const Todo = ({ onClick, completed, text }) => (
   <li
@@ -99,20 +99,13 @@ const Todo = ({ onClick, completed, text }) => (
   </li>
 );
 
-const TodoList = ({ todos }) => (
+/*
+Let's convert it to a Presentational component
+*/
+const TodoList = ({ todos, onTodoClick }) => (
   <ul>
-    {todos.map(t => (
-      <Todo
-        key={todo.id}
-        text={t.text}
-        completed={t.completed}
-        onClick={e => {
-          store.dispatch({
-            type: "TOGGLE_TODO",
-            id: t.id
-          });
-        }}
-      />
+    {todos.map(todo => (
+      <Todo key={todo.id} {...todo} onClick={() => onTodoClick(todo.id)} />
     ))}
   </ul>
 );
@@ -141,7 +134,15 @@ class TodoApp extends React.Component {
         >
           Add Todo
         </button>
-        <TodoList todos={visibleTodos} />
+        <TodoList
+          todos={visibleTodos}
+          onTodoClick={id => {
+            store.dispatch({
+              type: "TOGGLE_TODO",
+              id // this equals `id: id`
+            });
+          }}
+        />
         <FilterLink filter="SHOW_ALL" currentFilter={visibilityFilter}>
           ALL
         </FilterLink>
