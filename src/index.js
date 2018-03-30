@@ -31,12 +31,12 @@ const initialTodos = [
     completed: false
   },
   {
-    id: 2,
+    id: 1,
     text: "Hello Ho",
     completed: false
   },
   {
-    id: 3,
+    id: 2,
     text: "Hello Hey",
     completed: false
   }
@@ -77,6 +77,8 @@ const getVisibleTodos = (todos, filter) => {
       return todos.filter(t => t.completed);
     case "SHOW_ACTIVE":
       return todos.filter(t => !t.completed);
+    default:
+      return todos;
   }
 };
 
@@ -110,30 +112,45 @@ const TodoList = ({ todos, onTodoClick }) => (
   </ul>
 );
 
+/* Create another functional component AddTodo 
+This one is also a presentational component */
+const AddTodo = ({ onAddClick }) => {
+  let input;
+  return (
+    <div>
+      <input
+        ref={node => {
+          input = node;
+        }}
+      />
+      <button
+        onClick={e => {
+          onAddClick(input.value);
+          input.value = "";
+        }}
+      >
+        Add Todo
+      </button>
+    </div>
+  );
+};
+
 class TodoApp extends React.Component {
   render() {
     const { todos, visibilityFilter } = this.props;
     const visibleTodos = getVisibleTodos(todos, visibilityFilter);
     return (
       <div>
-        <input
-          ref={node => {
-            this.input = node;
-          }}
-        />
-        <button
-          onClick={e => {
-            e.preventDefault();
+        <AddTodo
+          onAddClick={value => {
             store.dispatch({
               type: "ADD_TODO",
-              text: this.input.value,
+              text: value,
               id: nextToDo++
             });
-            this.input.value = "";
           }}
-        >
-          Add Todo
-        </button>
+        />
+
         <TodoList
           todos={visibleTodos}
           onTodoClick={id => {
