@@ -80,6 +80,24 @@ const getVisibleTodos = (todos, filter) => {
   }
 };
 
+/* Extract Todo */
+const Todo = ({ todo }) => (
+  <li
+    key={todo.id}
+    onClick={e => {
+      store.dispatch({
+        type: "TOGGLE_TODO",
+        id: todo.id
+      });
+    }}
+    style={{
+      textDecoration: todo.completed ? "line-through" : "none"
+    }}
+  >
+    {todo.text}
+  </li>
+);
+
 class TodoApp extends React.Component {
   render() {
     const { todos, visibilityFilter } = this.props;
@@ -104,24 +122,7 @@ class TodoApp extends React.Component {
         >
           Add Todo
         </button>
-        <ul>
-          {visibleTodos.map(t => (
-            <li
-              key={t.id}
-              onClick={e => {
-                store.dispatch({
-                  type: "TOGGLE_TODO",
-                  id: t.id
-                });
-              }}
-              style={{
-                textDecoration: t.completed ? "line-through" : "none"
-              }}
-            >
-              {t.text}
-            </li>
-          ))}
-        </ul>
+        <ul>{visibleTodos.map(t => <Todo todo={t} />)}</ul>
         <FilterLink filter="SHOW_ALL" currentFilter={visibilityFilter}>
           ALL
         </FilterLink>
