@@ -135,7 +135,7 @@ const AddTodo = ({ onAddClick }) => {
   );
 };
 
-const FilterLink = ({ filter, currentFilter, children }) => {
+const FilterLink = ({ filter, currentFilter, children, onClick }) => {
   if (filter === currentFilter) {
     return <span>{children}</span>;
   }
@@ -143,10 +143,8 @@ const FilterLink = ({ filter, currentFilter, children }) => {
     <a
       href="#"
       onClick={e => {
-        store.dispatch({
-          type: "SET_VISIBILITY_FILTER",
-          filter: filter
-        });
+        e.preventDefault();
+        onClick(filter);
       }}
     >
       {children}
@@ -154,18 +152,35 @@ const FilterLink = ({ filter, currentFilter, children }) => {
   );
 };
 
-const Footer = ({ currentFilter }) => (
+/* 
+To convert the footer to a presentation component, we need ot make sure
+it doesn't have any actions or behaviors.
+FilterLink does have an onClick! So need to extract that
+*/
+const Footer = ({ currentFilter, onFilterClick }) => (
   <p>
     Show:
-    <FilterLink filter="SHOW_ALL" currentFilter={currentFilter}>
+    <FilterLink
+      onClick={onFilterClick}
+      filter="SHOW_ALL"
+      currentFilter={currentFilter}
+    >
       ALL
     </FilterLink>
     {", "}
-    <FilterLink filter="SHOW_ACTIVE" currentFilter={currentFilter}>
+    <FilterLink
+      onClick={onFilterClick}
+      filter="SHOW_ACTIVE"
+      currentFilter={currentFilter}
+    >
       ACTIVE
     </FilterLink>
     {", "}
-    <FilterLink filter="SHOW_COMPLETED" currentFilter={currentFilter}>
+    <FilterLink
+      onClick={onFilterClick}
+      filter="SHOW_COMPLETED"
+      currentFilter={currentFilter}
+    >
       COMPLETED
     </FilterLink>
   </p>
@@ -201,7 +216,15 @@ class TodoApp extends React.Component {
           }}
         />
 
-        <Footer currentFilter={visibilityFilter} />
+        <Footer
+          currentFilter={visibilityFilter}
+          onFilterClick={filter => {
+            store.dispatch({
+              type: "SET_VISIBILITY_FILTER",
+              filter: filter
+            });
+          }}
+        />
       </div>
     );
   }
