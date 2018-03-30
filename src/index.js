@@ -134,9 +134,8 @@ const AddTodo = ({ onAddClick }) => {
     </div>
   );
 };
-
-const FilterLink = ({ filter, currentFilter, children, onClick }) => {
-  if (filter === currentFilter) {
+const Link = ({ active, children, onClick }) => {
+  if (active) {
     return <span>{children}</span>;
   }
   return (
@@ -144,7 +143,7 @@ const FilterLink = ({ filter, currentFilter, children, onClick }) => {
       href="#"
       onClick={e => {
         e.preventDefault();
-        onClick(filter);
+        onClick();
       }}
     >
       {children}
@@ -152,37 +151,59 @@ const FilterLink = ({ filter, currentFilter, children, onClick }) => {
   );
 };
 
+/*
+In here, basically we are turning FilterLink into a Container Component.
+Therefore, at the top most level, <Footer> doesn't have to pass down props.
+This is because FilterLink will now access the store directly.
+The Footer component doesn't have ot pass in the OnClick and currentFilter either.
+These are all now accessed through FilterLink "Container Component".
+The "Link" component is now simply a presentational component. It simply shows
+the link, has a "active" (or not) varible, and an onClick handler.
+*/
+class FilterLink extends React.Component {
+  componentDidMount() {
+    this.unsubscribe = store.subscribe(() => this.forceUpdate());
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
+  render() {
+    const props = this.props;
+    const state = store.getState();
+
+    if (state.visibilityFilter === this.props.filter) {
+      return <span>{this.props.children}</span>;
+    }
+    return (
+      <Link
+        onClick={() => {
+          store.dispatch({
+            type: "SET_VISIBILITY_FILTER",
+            filter: this.props.filter
+          });
+        }}
+      >
+        {this.props.children}
+      </Link>
+    );
+  }
+}
+
 /* 
 To convert the footer to a presentation component, we need ot make sure
 it doesn't have any actions or behaviors.
 FilterLink does have an onClick! So need to extract that
 */
-const Footer = ({ currentFilter, onFilterClick }) => (
+const Footer = () => (
   <p>
     Show:
-    <FilterLink
-      onClick={onFilterClick}
-      filter="SHOW_ALL"
-      currentFilter={currentFilter}
-    >
-      ALL
-    </FilterLink>
+    <FilterLink filter="SHOW_ALL">ALL</FilterLink>
     {", "}
-    <FilterLink
-      onClick={onFilterClick}
-      filter="SHOW_ACTIVE"
-      currentFilter={currentFilter}
-    >
-      ACTIVE
-    </FilterLink>
+    <FilterLink filter="SHOW_ACTIVE">ACTIVE</FilterLink>
     {", "}
-    <FilterLink
-      onClick={onFilterClick}
-      filter="SHOW_COMPLETED"
-      currentFilter={currentFilter}
-    >
-      COMPLETED
-    </FilterLink>
+    <FilterLink filter="SHOW_COMPLETED">COMPLETED</FilterLink>
   </p>
 );
 
@@ -218,15 +239,7 @@ const TodoApp = ({ todos, visibilityFilter }) => (
       }}
     />
 
-    <Footer
-      currentFilter={visibilityFilter}
-      onFilterClick={filter => {
-        store.dispatch({
-          type: "SET_VISIBILITY_FILTER",
-          filter: filter
-        });
-      }}
-    />
+    <Footer />
   </div>
 );
 
