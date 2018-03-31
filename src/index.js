@@ -3,6 +3,9 @@ import PropTypes from 'prop-types';
 import ReactDOM from "react-dom";
 import { createStore, combineReducers } from "redux";
 
+// Import Provider
+import { Provider } from 'react-redux';
+
 /* Reducers */
 
 const todo = (state, action) => {
@@ -283,21 +286,26 @@ const TodoApp = () => (
 
 /* Use Context to pass down store IMPLICITLY */
 
-class Provider extends Component {
-  getChildContext() {
-    return {
-      store: this.props.store
-    };
-  }
 
-  render() {
-    return this.props.children;
-  }
-}
+// class Provider extends Component {
+//   getChildContext() {
+//     return {
+//       store: this.props.store
+//     };
+//   }
 
-Provider.childContextTypes = {
-  store: PropTypes.object
-};
+//   render() {
+//     return this.props.children;
+//   }
+// }
+
+// Provider.childContextTypes = {
+//   store: PropTypes.object
+// };
+
+// Disable this. Instead, import Provider
+//   1. yarn add react-redux
+//   2. import { Provider} from 'react-redux';
 
 /* MAIN APP AND STORE */
 
