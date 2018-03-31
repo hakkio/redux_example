@@ -1,10 +1,13 @@
 import React, { Component } from "react";
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 import ReactDOM from "react-dom";
 import { createStore, combineReducers } from "redux";
 
 // Import Provider
-import { Provider } from 'react-redux';
+import { Provider } from "react-redux";
+
+//
+import { connect } from "react-redux";
 
 /* Reducers */
 
@@ -71,7 +74,6 @@ const todoApp = combineReducers({
 });
 
 /* REACT COMPONENTS */
-let nextToDo = 3;
 
 const getVisibleTodos = (todos, filter) => {
   switch (filter) {
@@ -114,7 +116,8 @@ const TodoList = ({ todos, onTodoClick }) => (
 
 /* Create another functional component AddTodo 
 This one is also a presentational component */
-const AddTodo = (props, { store }) => {
+let nextToDo = 3;
+let AddTodo = ({ dispatch }) => {
   let input;
   return (
     <div>
@@ -125,7 +128,7 @@ const AddTodo = (props, { store }) => {
       />
       <button
         onClick={e => {
-          store.dispatch({
+          dispatch({
             type: "ADD_TODO",
             text: input.value,
             id: nextToDo++
@@ -138,9 +141,18 @@ const AddTodo = (props, { store }) => {
     </div>
   );
 };
-AddTodo.contextTypes = {
-  store: PropTypes.object
-};
+
+
+// AddTodo = connect(
+//   null, // No need to subscribe the store
+//   dispatch => {
+//     return { dispatch };
+//   }
+// )(AddTodo)
+
+// Since dispatch is returning dispatch, it can be removed
+// Since both arguments are null, then we can just do this:
+AddTodo = connect()(AddTodo)
 
 const Link = ({ active, children, onClick }) => {
   if (active) {
@@ -212,55 +224,75 @@ FilterLink does have an onClick! So need to extract that
 const Footer = () => (
   <p>
     Show:
-    <FilterLink filter="SHOW_ALL">
-      ALL
-    </FilterLink>
+    <FilterLink filter="SHOW_ALL">ALL</FilterLink>
     {", "}
-    <FilterLink filter="SHOW_ACTIVE">
-      ACTIVE
-    </FilterLink>
+    <FilterLink filter="SHOW_ACTIVE">ACTIVE</FilterLink>
     {", "}
-    <FilterLink filter="SHOW_COMPLETED">
-      COMPLETED
-    </FilterLink>
+    <FilterLink filter="SHOW_COMPLETED">COMPLETED</FilterLink>
   </p>
 );
 
-/* Create another Container component.
-The purpose of container components is to connect 
-presentational component to the redux store and specify
-the data and behavior that it needs!
-*/
-class VisibleTodoList extends React.Component {
-  componentDidMount() {
-    const { store } = this.context;
-    this.unsubscribe = store.subscribe(() => this.forceUpdate());
-  }
+/* Using mapStateToProps() */
 
-  componentWillUnmount() {
-    this.unsubscribe();
-  }
-
-  render() {
-    const props = this.props;
-    const { store } = this.context;
-    const state = store.getState();
-    return (
-      <TodoList
-        todos={getVisibleTodos(state.todos, state.visibilityFilter)}
-        onTodoClick={id => {
-          store.dispatch({
-            type: "TOGGLE_TODO",
-            id // this equals `id: id`
-          });
-        }}
-      />
-    );
-  }
-}
-VisibleTodoList.contextTypes = {
-  store: PropTypes.object
+const mapStateToTodoListProps = state => {
+  return {
+    todos: getVisibleTodos(state.todos, state.visibilityFilter)
+  };
 };
+
+const mapDispatchToTodoListProps = dispatch => {
+  return {
+    onTodoClick: id => {
+      dispatch({
+        type: "TOGGLE_TODO",
+        id // this equals `id: id`
+      });
+    }
+  };
+};
+
+/* The above two functions map the state to the props of ToDo List component.
+This is related to the data.
+2nd function maps dispatch method of the store to the callback of the component
+
+So the two describe a container component so well, that we can use the "connect" function
+*/
+
+const VisibleTodoList = connect(
+  mapStateToTodoListProps,
+  mapDispatchToTodoListProps
+)(TodoList);
+
+// The above generates the same class as below automatically!
+
+// /* Create another Container component.
+// The purpose of container components is to connect 
+// presentational component to the redux store and specify
+// the data and behavior that it needs!
+// */
+// class VisibleTodoList extends React.Component {
+//   componentDidMount() {
+//     const { store } = this.context;
+//     this.unsubscribe = store.subscribe(() => this.forceUpdate());
+//   }
+
+//   componentWillUnmount() {
+//     this.unsubscribe();
+//   }
+
+//   render() {
+//     const props = this.props;
+//     const { store } = this.context;
+//     const state = store.getState();
+//     return <TodoList />;
+//   }
+// }
+// VisibleTodoList.contextTypes = {
+//   store: PropTypes.object
+// };
+
+
+
 
 /*
 This is the main "app" and is a container component.
@@ -285,7 +317,6 @@ const TodoApp = () => (
 );
 
 /* Use Context to pass down store IMPLICITLY */
-
 
 // class Provider extends Component {
 //   getChildContext() {
