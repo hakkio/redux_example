@@ -1,12 +1,9 @@
-import React, { Component } from "react";
-import PropTypes from "prop-types";
+import React from "react";
 import ReactDOM from "react-dom";
 import { createStore, combineReducers } from "redux";
 
-// Import Provider
+// Import Provider and "connect"
 import { Provider } from "react-redux";
-
-//
 import { connect } from "react-redux";
 
 /* Reducers */
@@ -73,6 +70,30 @@ const todoApp = combineReducers({
   visibilityFilter
 });
 
+/* Actions */
+
+const addTodo = (text) => {
+  return {
+    type: "ADD_TODO",
+    text,
+    id: nextToDo++
+  }
+}
+
+const setVisibilityFilter = (filter) => {
+  return {
+    type: "SET_VISIBILITY_FILTER",
+    filter
+  }
+}
+
+const toggleTodo = (id) => {
+  return {
+    type: "TOGGLE_TODO",
+    id // this equals `id: id`
+  }
+}
+
 /* REACT COMPONENTS */
 
 const getVisibleTodos = (todos, filter) => {
@@ -117,6 +138,7 @@ const TodoList = ({ todos, onTodoClick }) => (
 /* Create another functional component AddTodo 
 This one is also a presentational component */
 let nextToDo = 3;
+
 let AddTodo = ({ dispatch }) => {
   let input;
   return (
@@ -128,11 +150,7 @@ let AddTodo = ({ dispatch }) => {
       />
       <button
         onClick={e => {
-          dispatch({
-            type: "ADD_TODO",
-            text: input.value,
-            id: nextToDo++
-          });
+          dispatch(addTodo(input.value));
           input.value = "";
         }}
       >
@@ -141,7 +159,6 @@ let AddTodo = ({ dispatch }) => {
     </div>
   );
 };
-
 
 // AddTodo = connect(
 //   null, // No need to subscribe the store
@@ -152,7 +169,7 @@ let AddTodo = ({ dispatch }) => {
 
 // Since dispatch is returning dispatch, it can be removed
 // Since both arguments are null, then we can just do this:
-AddTodo = connect()(AddTodo)
+AddTodo = connect()(AddTodo);
 
 const Link = ({ active, children, onClick }) => {
   if (active) {
@@ -180,41 +197,58 @@ These are all now accessed through FilterLink "Container Component".
 The "Link" component is now simply a presentational component. It simply shows
 the link, has a "active" (or not) varible, and an onClick handler.
 */
-class FilterLink extends React.Component {
-  componentDidMount() {
-    const { store } = this.context;
-    this.unsubscribe = store.subscribe(() => this.forceUpdate());
-  }
 
-  componentWillUnmount() {
-    this.unsubscribe();
-  }
-
-  render() {
-    const props = this.props;
-    const { store } = this.context;
-    const state = store.getState();
-
-    if (state.visibilityFilter === this.props.filter) {
-      return <span>{this.props.children}</span>;
-    }
-    return (
-      <Link
-        onClick={() => {
-          store.dispatch({
-            type: "SET_VISIBILITY_FILTER",
-            filter: this.props.filter
-          });
-        }}
-      >
-        {this.props.children}
-      </Link>
-    );
+const mapStateToLinkProps = (state, ownProps) => {
+  return {
+    active: state.visibilityFilter === ownProps.filter
   }
 }
-FilterLink.contextTypes = {
-  store: PropTypes.object
-};
+
+const mapDispatchToLinkProps = (dispatch, ownProps) => {
+  return {
+    onClick: () => {
+      dispatch(setVisibilityFilter(ownProps.filter));
+    }
+  }
+}
+
+const FilterLink = connect(mapStateToLinkProps, mapDispatchToLinkProps)(Link);
+
+/* Replace below class with above "connect" */
+
+// class FilterLink extends React.Component {
+//   componentDidMount() {
+//     const { store } = this.context;
+//     this.unsubscribe = store.subscribe(() => this.forceUpdate());
+//   }
+
+//   componentWillUnmount() {
+//     this.unsubscribe();
+//   }
+
+//   render() {
+//     const props = this.props;
+//     const { store } = this.context;
+//     const state = store.getState();
+
+//     return (
+//       <Link
+//         active={state.visibilityFilter === props.filter}
+//         onClick={() => {
+//           store.dispatch({
+//             type: "SET_VISIBILITY_FILTER",
+//             filter: props.filter
+//           });
+//         }}
+//       >
+//         {props.children}
+//       </Link>
+//     );
+//   }
+// }
+// FilterLink.contextTypes = {
+//   store: PropTypes.object
+// };
 
 /* 
 To convert the footer to a presentation component, we need ot make sure
@@ -243,10 +277,7 @@ const mapStateToTodoListProps = state => {
 const mapDispatchToTodoListProps = dispatch => {
   return {
     onTodoClick: id => {
-      dispatch({
-        type: "TOGGLE_TODO",
-        id // this equals `id: id`
-      });
+      dispatch(toggleTodo(id));
     }
   };
 };
@@ -258,15 +289,12 @@ This is related to the data.
 So the two describe a container component so well, that we can use the "connect" function
 */
 
-const VisibleTodoList = connect(
-  mapStateToTodoListProps,
-  mapDispatchToTodoListProps
-)(TodoList);
+const VisibleTodoList = connect(mapStateToTodoListProps, mapDispatchToTodoListProps)(TodoList);
 
 // The above generates the same class as below automatically!
 
 // /* Create another Container component.
-// The purpose of container components is to connect 
+// The purpose of container components is to connect
 // presentational component to the redux store and specify
 // the data and behavior that it needs!
 // */
@@ -290,9 +318,6 @@ const VisibleTodoList = connect(
 // VisibleTodoList.contextTypes = {
 //   store: PropTypes.object
 // };
-
-
-
 
 /*
 This is the main "app" and is a container component.
